@@ -1,4 +1,4 @@
-import { fetchProduct, quantityErrorMsg } from "./functions.js";
+import { fetchProduct, quantityErrorMsg, validateCart, verifyFormData } from "./functions.js";
 
 //localStorage.clear();
 
@@ -117,3 +117,22 @@ if (cart) {
   DisplayArticles(cart);
 }
 refreshCartTotal();
+
+// PARTIE FORMULAIRE
+
+const formElement = document.querySelector(".cart__order__form");
+//const orderBtnElement = document.querySelector("#order");
+
+formElement.addEventListener("submit", async (event) => {
+  let cart = JSON.parse(localStorage.getItem("cart"));
+  const userData = new FormData(formElement);
+  const isFormValid = true;
+  event.preventDefault();
+  if (verifyFormData(userData) && cart[0]) {
+    const order = await validateCart(userData, cart);
+    saveCart([]);
+    window.location.replace(
+      `http://127.0.0.1:5500/front/html/confirmation.html?order=${order.orderId}`
+    );
+  }
+});

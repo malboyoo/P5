@@ -50,11 +50,10 @@ addToCartBtn.addEventListener("click", () => {
   // récupération valeur utilisateur
   const numberOfItems = document.querySelector("#quantity").value;
   const choosedColor = document.querySelector("#colors").value;
-  console.log(numberOfItems);
   // vérification si valeur correctes
-  let quantityValid = quantityErrorMsg(numberOfItems, false, document);
-  let colorValid = colorErrorMsg(choosedColor);
-  if (quantityValid && colorValid) {
+  let isQuantityOk = quantityErrorMsg(numberOfItems, false, document);
+  let isColorOk = colorErrorMsg(choosedColor);
+  if (isQuantityOk && isColorOk) {
     const sucessMsgElement = document.createElement("p");
     sucessMsgElement.classList.add("success-msg");
     sucessMsgElement.innerHTML = "Article ajouté au panier.";
@@ -84,32 +83,33 @@ const colorErrorMsg = (color) => {
 
 // fonction d'ajout de produit au panier, utilisant local storage
 const updateCart = (id, quantity, color, name) => {
+  let cart = JSON.parse(localStorage.getItem("cart"));
   let alreadyInCart = false;
   // création de l'objet en rapport avec la couleur/quantité
   let cartData = {
     id: id,
-    quantity: quantity,
+    quantity: parseInt(quantity),
     color: color,
     name: name,
   };
 
   // on vérifie si un panier existe déja, si c'est le cas, on récupère le panier pour y ajouter le nouvel article
 
-  if (localStorage.getItem("cart")) {
-    let cart = JSON.parse(localStorage.getItem("cart"));
+  if (cart) {
     for (let product of cart) {
       // si le meme article avec la meme couleur est déjà dans le panier, on additionne la quantité
       if (product.id == id && product.color == color) {
         alreadyInCart = true;
-        product.quantity += quantity;
+        product.quantity += parseInt(quantity);
       }
     }
     if (!alreadyInCart) {
       cart.push(cartData);
     }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    //sinon, on crée un nouveau tableau avec l'object
   } else {
+    //sinon, on crée un nouveau tableau avec l'object
     localStorage.setItem("cart", JSON.stringify([cartData]));
   }
+  // on sauvegarde cart à la fin de la function
+  localStorage.setItem("cart", JSON.stringify(cart));
 };
