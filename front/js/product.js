@@ -1,6 +1,6 @@
 const params = new URLSearchParams(document.location.search);
 const productId = params.get("id");
-import { fetchProduct, quantityErrorMsg } from "./functions.js";
+import { fetchProduct, quantityErrorMsg, loadCart } from "./functions.js";
 //localStorage.clear();
 
 const showProduct = async () => {
@@ -48,7 +48,7 @@ addToCartBtn.addEventListener("click", () => {
     document.querySelector(".success-msg").remove();
   }
   // récupération valeur utilisateur
-  const numberOfItems = document.querySelector("#quantity").value;
+  const numberOfItems = parseInt(document.querySelector("#quantity").value);
   const choosedColor = document.querySelector("#colors").value;
   // vérification si valeur correctes
   let isQuantityOk = quantityErrorMsg(numberOfItems, false, document);
@@ -83,7 +83,7 @@ const colorErrorMsg = (color) => {
 
 // fonction d'ajout de produit au panier, utilisant local storage
 const updateCart = (id, quantity, color, name) => {
-  let cart = JSON.parse(localStorage.getItem("cart"));
+  const cart = loadCart();
   let alreadyInCart = false;
   // création de l'objet en rapport avec la couleur/quantité
   let cartData = {
@@ -106,10 +106,10 @@ const updateCart = (id, quantity, color, name) => {
     if (!alreadyInCart) {
       cart.push(cartData);
     }
+    // on sauvegarde cart à la fin de la function
+    localStorage.setItem("cart", JSON.stringify(cart));
   } else {
     //sinon, on crée un nouveau tableau avec l'object
     localStorage.setItem("cart", JSON.stringify([cartData]));
   }
-  // on sauvegarde cart à la fin de la function
-  localStorage.setItem("cart", JSON.stringify(cart));
 };

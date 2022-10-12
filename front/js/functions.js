@@ -136,9 +136,7 @@ export const validateCart = async (userData, cart) => {
   let products = cart.map((product) => product.id);
 
   const obj = { contact, products };
-  console.log(obj);
 
-  event.preventDefault();
   try {
     const response = await fetch("http://localhost:3000/api/products/order", {
       method: "POST",
@@ -152,4 +150,18 @@ export const validateCart = async (userData, cart) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+export const loadCart = () => {
+  let cart = JSON.parse(localStorage.getItem("cart"));
+  if (cart) {
+    // vérifie que la quantité n'est pas supérieure à 100
+    return cart.map((el) => (el.quantity > 100 ? { ...el, quantity: 100 } : el));
+  } else {
+    return false;
+  }
+};
+
+export const saveCart = (cart) => {
+  localStorage.setItem("cart", JSON.stringify(cart));
 };

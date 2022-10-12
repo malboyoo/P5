@@ -1,20 +1,36 @@
-import { fetchProduct, quantityErrorMsg, validateCart, verifyFormData } from "./functions.js";
+import {
+  fetchProduct,
+  loadCart,
+  quantityErrorMsg,
+  validateCart,
+  verifyFormData,
+  saveCart,
+} from "./functions.js";
 
 //localStorage.clear();
 
 //récuperation des données stockées dans le localStorage:
-let cart = JSON.parse(localStorage.getItem("cart"));
-console.log(cart);
-//on tri le cart si il existe
-if (cart) {
+const cart = loadCart();
+
+const cartIsEmpty = () => {
+  const cartItemsElement = document.querySelector("#cart__items");
+  const emptyCartMessage = document.createElement("p");
+  emptyCartMessage.textContent = "Votre panier est vide.";
+  emptyCartMessage.style.textAlign = "center";
+  cartItemsElement.append(emptyCartMessage);
+};
+
+//on tri le cart si il existe, sinon on affiche qu'il est vide.
+if (cart.length) {
   cart.sort((a, b) => a.name.localeCompare(b.name));
+} else {
+  cartIsEmpty();
 }
 
 const createArticle = async (product) => {
-  let content = "";
   //on récupère les données du produit depuis l'api
   const productData = await fetchProduct(product.id);
-  content += `<article class="cart__item" data-id="${product.id}" data-color="${product.color}">
+  let content = `<article class="cart__item" data-id="${product.id}" data-color="${product.color}">
   <div class="cart__item__img">
     <img src="${productData.imageUrl}" alt="${productData.altTxt}">
     </div>
@@ -47,12 +63,10 @@ const DisplayArticles = async (cart) => {
   cartItemsElement.innerHTML = content;
   editArticle();
   deleteArticle();
+  console.log(cart);
 };
 
 //sauvegarde des nouvelles données dans le localStorage:
-const saveCart = (cart) => {
-  localStorage.setItem("cart", JSON.stringify(cart));
-};
 
 const editArticle = () => {
   const allArticles = document.querySelectorAll(".cart__item");
@@ -74,14 +88,14 @@ const quantityChange = (article, eventListenedNode, quantityOk) => {
     quantityElement.textContent = `Qté : ${eventListenedNode.value}`;
     for (let product of cart) {
       if (product.id == article.dataset.id && product.color == article.dataset.color) {
-        product.quantity = eventListenedNode.value;
+        product.quantity = parseInt(eventListenedNode.value);
       }
     }
   }
 };
 
 const refreshCartTotal = async () => {
-  let cart = JSON.parse(localStorage.getItem("cart"));
+  const cart = loadCart();
   // calcule de la quantité d'articles
   const totalQuantity = cart.reduce((total, article) => parseInt(article.quantity) + total, 0);
   const totalQuantityElement = document.querySelector("#totalQuantity");
@@ -98,6 +112,7 @@ const refreshCartTotal = async () => {
 };
 
 const deleteArticle = () => {
+  const cart = loadCart();
   const allArticles = document.querySelectorAll(".cart__item");
   for (let article of allArticles) {
     //on cible le bouton supprimer de l'article
@@ -115,8 +130,8 @@ const deleteArticle = () => {
 
 if (cart) {
   DisplayArticles(cart);
+  refreshCartTotal();
 }
-refreshCartTotal();
 
 // PARTIE FORMULAIRE
 
@@ -124,11 +139,11 @@ const formElement = document.querySelector(".cart__order__form");
 //const orderBtnElement = document.querySelector("#order");
 
 formElement.addEventListener("submit", async (event) => {
-  let cart = JSON.parse(localStorage.getItem("cart"));
+  const cart = loadCart();
   const userData = new FormData(formElement);
   const isFormValid = true;
   event.preventDefault();
-  if (verifyFormData(userData) && cart[0]) {
+  if (verifyFormData(userData) && cart.length) {
     const order = await validateCart(userData, cart);
     saveCart([]);
     window.location.replace(
