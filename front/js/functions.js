@@ -1,3 +1,4 @@
+// fait une requête à l'API pour récupèrer un produit grâce à sont ID
 export const fetchProduct = async (id) => {
   try {
     let response = await fetch(`http://localhost:3000/api/products/${id}`);
@@ -12,6 +13,7 @@ export const fetchProduct = async (id) => {
   }
 };
 
+// fait une requête à l'API pour récupèrer tous les produits
 export const fetchAllProducts = async () => {
   try {
     let response = await fetch("http://localhost:3000/api/products");
@@ -22,23 +24,26 @@ export const fetchAllProducts = async () => {
       console.log("status error:", response.status);
     }
   } catch (error) {
-    console.log("catched error", error);
+    console.log("catched error:", error);
   }
 };
 
-export const quantityErrorMsg = (number, CartPage, node) => {
-  //création des messages d'erreur
+// fonction déstiné au message d'erreur en rapport avec la quantité
+export const quantityErrorMsg = (number, selector, node) => {
+  // création des messages d'erreur (Element)
   const quantityErrorElement = document.createElement("p");
   quantityErrorElement.style.color = "red";
   quantityErrorElement.style.fontWeight = "bold";
   quantityErrorElement.classList.add("quantity-error-msg");
-  //supression d'un éventuel message d'erreur antérieur avant reverification
+
+  // supression d'un éventuel message d'erreur antérieur avant reverification
   const CurrentErrorMsg = node.querySelector(".quantity-error-msg");
   if (CurrentErrorMsg) CurrentErrorMsg.remove();
-  let quantitySelector = CartPage
-    ? ".cart__item__content__settings__quantity"
-    : ".item__content__settings__quantity";
-  const quantityElement = node.querySelector(quantitySelector);
+
+  // on cible l'element ou sera insérer l'erreur
+  const quantityElement = node.querySelector(selector);
+
+  // on établi les conditions pour que l'erreur soit insérer, si tout est correct la fonction retourne true.
   if (number <= 0 || "") {
     quantityErrorElement.innerHTML = "Vous devez selectionner au moins 1 article.";
     quantityElement.append(quantityErrorElement);
@@ -53,8 +58,9 @@ export const quantityErrorMsg = (number, CartPage, node) => {
   }
 };
 
+// fonction relative à la verification du formulaire
 export const verifyFormData = (userData) => {
-  //initialisation des booléans pour verification finale
+  // initialisation des booléans pour verification finale
   let isFirstNameOk = false;
   let isLastNameOk = false;
   let isCityOk = false;
@@ -82,37 +88,34 @@ export const verifyFormData = (userData) => {
   let city = userData.get("city");
   let email = userData.get("email");
 
-  //initialisation des regex pour chaque cas
+  // initialisation des regex pour chaque cas
   const nameRegex =
     /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
   const addressRegex =
     /^[a-zA-z0-9-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
-  //first name test
+
+  // test du champ firstName
   nameRegex.test(firstName)
     ? (isFirstNameOk = true)
-    : (firstNameErrorElement.textContent =
-        "Votre prénom ne doit pas contenir de chiffres ou de caractères spéciaux.");
+    : (firstNameErrorElement.textContent = "Votre prénom ne doit pas contenir de chiffres ou de caractères spéciaux.");
 
-  //last name test
+  // test du champ lastName
   nameRegex.test(lastName)
     ? (isLastNameOk = true)
-    : (lastNameErrorElement.textContent =
-        "Votre nom ne doit pas contenir de chiffres ou de caractères spéciaux.");
+    : (lastNameErrorElement.textContent = "Votre nom ne doit pas contenir de chiffres ou de caractères spéciaux.");
 
-  //address name test
+  // test du champ address
   addressRegex.test(address)
     ? (isAddressOk = true)
-    : (addressErrorElement.textContent =
-        "Votre adresse ne doit pas contenir de caractères spéciaux.");
+    : (addressErrorElement.textContent = "Votre adresse ne doit pas contenir de caractères spéciaux.");
 
-  //city name test
+  // test du champ city
   nameRegex.test(city)
     ? (isCityOk = true)
-    : (cityErrorElement.textContent =
-        "Votre ville ne doit pas contenir de chiffres ou de caractères spéciaux.");
+    : (cityErrorElement.textContent = "Votre ville ne doit pas contenir de chiffres ou de caractères spéciaux.");
 
-  //email test
+  // test du champ email
   emailRegex.test(email)
     ? (isEmailOk = true)
     : (emailErrorElement.textContent = "Le format de votre adresse email n'est pas valide.");
@@ -125,6 +128,7 @@ export const verifyFormData = (userData) => {
   }
 };
 
+// fonction envoyé au back-end en cas de succèss de celle-ci
 export const validateCart = async (userData, cart) => {
   const contact = {
     firstName: userData.get("firstName"),
@@ -133,13 +137,16 @@ export const validateCart = async (userData, cart) => {
     city: userData.get("city"),
     email: userData.get("email"),
   };
+  // retourne un tableau ne contenant que les ID de chaque article
   let products = cart.map((product) => product.id);
 
+  // object retourné au back-end
   const obj = { contact, products };
 
   try {
     const response = await fetch("http://localhost:3000/api/products/order", {
       method: "POST",
+      // on transforme l'object en string pour qu'il soit accepté par l'API
       body: JSON.stringify(obj),
       headers: {
         "content-Type": "application/json",
@@ -152,6 +159,7 @@ export const validateCart = async (userData, cart) => {
   }
 };
 
+// permet de charger le tableau "cart" stocké en localStorage
 export const loadCart = () => {
   let cart = JSON.parse(localStorage.getItem("cart"));
   if (cart) {
@@ -162,6 +170,7 @@ export const loadCart = () => {
   }
 };
 
+// permet de sauvegarder rapidement le panier dans le local storage
 export const saveCart = (cart) => {
   localStorage.setItem("cart", JSON.stringify(cart));
 };
