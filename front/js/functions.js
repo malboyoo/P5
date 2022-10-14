@@ -174,3 +174,19 @@ export const loadCart = () => {
 export const saveCart = (cart) => {
   localStorage.setItem("cart", JSON.stringify(cart));
 };
+
+// crée un message si le panier est vide lors de la commande.
+export const cartIsEmpty = (parentNode) => {
+  // création des messages d'erreur (Element)
+  const emptyErrorElement = document.createElement("p");
+  emptyErrorElement.style.color = "red";
+  emptyErrorElement.style.fontWeight = "bold";
+  emptyErrorElement.style.textAlign = "center";
+  emptyErrorElement.classList.add("empty-error-msg");
+  emptyErrorElement.textContent = "Votre panier est vide.";
+  // on vérifie qu'un message d'erreur n'est pas déjà présent, si c'est le cas on le supprime.
+  const currentErrorMsg = parentNode.querySelector("empty-error-msg");
+  if (currentErrorMsg) currentErrorMsg.remove();
+  // on ajoute l'erreur sous le formulaire
+  parentNode.append(emptyErrorElement);
+};

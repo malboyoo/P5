@@ -1,5 +1,13 @@
 // récupère les functions depuis le fichier functions.js
-import { fetchProduct, loadCart, quantityErrorMsg, validateCart, verifyFormData, saveCart } from "./functions.js";
+import {
+  fetchProduct,
+  loadCart,
+  quantityErrorMsg,
+  validateCart,
+  verifyFormData,
+  saveCart,
+  cartIsEmpty,
+} from "./functions.js";
 
 //récuperation des données stockées dans le localStorage:
 const cart = loadCart();
@@ -65,7 +73,6 @@ const editArticle = () => {
       // retourne true ou false, si false, affiche un message d'erreur
       let quantityOk = quantityErrorMsg(itemQuantityElement.value, errorSelector, article);
       quantityChange(article, itemQuantityElement, quantityOk);
-      saveCart(cart);
       refreshCartTotal();
     });
   }
@@ -74,6 +81,8 @@ const editArticle = () => {
 // applique un changement de quantité, et met à jour le panier en localStorage
 const quantityChange = (article, eventListenedNode, quantityOk) => {
   if (quantityOk) {
+    // on charge le panier pour avoir des données à jour
+    const cart = loadCart();
     let quantityElement = article.querySelector(".quantity");
     quantityElement.textContent = `Qté : ${eventListenedNode.value}`;
     // on fais le lien entre les produits du panier et ceux de la page HTML grace à l'attribut HTML
@@ -83,6 +92,8 @@ const quantityChange = (article, eventListenedNode, quantityOk) => {
         product.quantity = parseInt(eventListenedNode.value);
       }
     }
+    // on sauvegarde les changements
+    saveCart(cart);
   }
 };
 
@@ -136,7 +147,9 @@ formElement.addEventListener("submit", async (event) => {
   const userData = new FormData(formElement);
   event.preventDefault();
   // si les données sont valide, on envoi la commande au back-end
-  if (verifyFormData(userData) && cart.length) {
+  if (!cart.length) {
+    cartIsEmpty(formElement);
+  } else if (verifyFormData(userData)) {
     const order = await validateCart(userData, cart);
     // réinitialisation du panier
     saveCart([]);
